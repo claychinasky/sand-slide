@@ -13,6 +13,7 @@ func _ready() -> void:
 	# I haven't benchmarked extensively yet, but this chunk size has reasonable 
 	# performance.
 	sim.set_chunk_size(16)
+	sim.set_gravity_enabled(true)
 	
 	await get_tree().get_root().ready
 	CommonReference.canvas.resized.connect(_on_window_resized)

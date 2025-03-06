@@ -6,6 +6,7 @@ godot-cpp/*
 game/android/*
 android_project/*
 game/release/*
+*.import
 
 # private export files
 *.cfg

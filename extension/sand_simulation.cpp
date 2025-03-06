@@ -112,15 +112,46 @@ void SandSimulation::grow(int row, int col, int food, int replacer) {
 void SandSimulation::liquid_process(int row, int col, int fluidity) {
     for (int i = 0; i < fluidity; i++) {
         double random = randf();
-        int new_col = col + (random < (0.5 + 1.0 / 32) ? 1 : -1);
-        if (random < 1.0 / 32)
-            new_col = col;
+        int new_row = row;
+        int new_col = col;
         
-        int new_row = row + (is_swappable(row, col, row + 1, new_col) ? 1 : 0);
-        if (is_swappable(row, col, new_row, new_col) && (randf() < 0.6 || !is_swappable(row, col, new_row + 1, new_col))) {
-            move_and_swap(row, col, new_row, new_col);
-            row = new_row;
-            col = new_col;
+        if (gravity_enabled) {
+            // Side-scroller mode with gravity
+            new_col = col + (random < (0.5 + 1.0 / 32) ? 1 : -1);
+            if (random < 1.0 / 32)
+                new_col = col;
+            
+            new_row = row + (is_swappable(row, col, row + 1, new_col) ? 1 : 0);
+            if (is_swappable(row, col, new_row, new_col) && (randf() < 0.6 || !is_swappable(row, col, new_row + 1, new_col))) {
+                move_and_swap(row, col, new_row, new_col);
+                row = new_row;
+                col = new_col;
+            }
+        } else {
+            // Top-down mode without gravity
+            // Randomly choose a direction (up, down, left, right)
+            int direction = static_cast<int>(random * 4);
+            
+            switch (direction) {
+                case 0: // Up
+                    new_row = row - 1;
+                    break;
+                case 1: // Right
+                    new_col = col + 1;
+                    break;
+                case 2: // Down
+                    new_row = row + 1;
+                    break;
+                case 3: // Left
+                    new_col = col - 1;
+                    break;
+            }
+            
+            if (is_swappable(row, col, new_row, new_col)) {
+                move_and_swap(row, col, new_row, new_col);
+                row = new_row;
+                col = new_col;
+            }
         }
     }
 }
@@ -564,6 +595,15 @@ void SandSimulation::initialize_custom_elements(Dictionary dict) {
     }
 }
 
+// Gravity control methods
+bool SandSimulation::is_gravity_enabled() {
+    return gravity_enabled;
+}
+
+void SandSimulation::set_gravity_enabled(bool enabled) {
+    gravity_enabled = enabled;
+}
+
 void SandSimulation::_bind_methods() {
     ClassDB::bind_method(D_METHOD("step"), &SandSimulation::step);
     ClassDB::bind_method(D_METHOD("in_bounds"), &SandSimulation::in_bounds);
@@ -575,12 +615,16 @@ void SandSimulation::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_height"), &SandSimulation::get_height);
     ClassDB::bind_method(D_METHOD("resize"), &SandSimulation::resize);
     ClassDB::bind_method(D_METHOD("set_chunk_size"), &SandSimulation::set_chunk_size);
-    ClassDB::bind_method(D_METHOD("get_color_image"), &SandSimulation::get_color_image);
+    ClassDB::bind_method(D_METHOD("get_color_image", "flat"), &SandSimulation::get_color_image);
 
-    ClassDB::bind_method(D_METHOD("initialize_custom_elements"), &SandSimulation::initialize_custom_elements);
+    ClassDB::bind_method(D_METHOD("initialize_custom_elements", "dict"), &SandSimulation::initialize_custom_elements);
 
     ClassDB::bind_method(D_METHOD("initialize_flat_color"), &SandSimulation::initialize_flat_color);
     ClassDB::bind_method(D_METHOD("initialize_gradient_color"), &SandSimulation::initialize_gradient_color);
     ClassDB::bind_method(D_METHOD("initialize_fluid_color"), &SandSimulation::initialize_fluid_color);
     ClassDB::bind_method(D_METHOD("initialize_metal_color"), &SandSimulation::initialize_metal_color);
+    
+    // Bind gravity control methods
+    ClassDB::bind_method(D_METHOD("is_gravity_enabled"), &SandSimulation::is_gravity_enabled);
+    ClassDB::bind_method(D_METHOD("set_gravity_enabled", "enabled"), &SandSimulation::set_gravity_enabled);
 }

@@ -79,6 +79,9 @@ public:
     int chunk_width = 4;
     int chunk_height = 4;
 
+    // Gravity control
+    bool gravity_enabled = true;
+
     // Pointers to an instance of each element to access class properties and methods
     std::vector<Element*> elements;
 
@@ -152,5 +155,8 @@ public:
 
     uint32_t get_color(int row, int col, bool flat);
     PackedByteArray get_color_image(bool flat);
-};
 
+    // Gravity control methods
+    bool is_gravity_enabled();
+    void set_gravity_enabled(bool enabled);
+};
